@@ -9,6 +9,6 @@
     "string_decoder"
   ],
   "domain": "localhost",
-  "lobbyPort": 3000,
-  "gamePortStart": 3001
+  "lobbyPort": 3030,
+  "gamePortStart": 3031
 }
