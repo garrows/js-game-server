@@ -36,7 +36,8 @@ describe("GarrowsGame", function() {
   });
 
   describe("when drawing", function() {
-    it("should draw the current state", function() {
+    it("should genrate level and draw it", function() {
+      game.generateLevel();
       game.draw();
     });
   });
@@ -52,7 +53,7 @@ describe("GarrowsGame", function() {
         }
       }
       for (var i = 0; i < game.map.width * game.map.width; i++) {
-        game.map[i].should.eql(i);
+        game.map.d[i].should.eql(i);
       }
       game.map.get(0, 0).should.eql(0);
       game.map.get(1, 0).should.eql(1);

@@ -21,13 +21,28 @@ if (typeof log === 'undefined') {
     name: name
   })
   canvas = document.getElementById('c');
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
+
+  function resize() {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize, false);
+
   c = canvas.getContext('2d');
-  requestAnimationFrame(game.draw.bind(game));
+  game.generateLevel();
+  game.drawLoop(0);
 } else {
   var Game = require(__dirname + '/game.js');
   var game = new Game(GAME_WIDTH);
+  //Fill map
+  // var i = 0;
+  // for (var y = 0; y < game.map.width; y++) {
+  //   for (var x = 0; x < game.map.width; x++) {
+  //     game.map.set(x, y, i);
+  //     i++;
+  //   }
+  // }
   io = require('sandbox-io');
   log('Loaded sandbox-io');
   io.on('connection', function(socket) {

@@ -1,4 +1,7 @@
-
+window.addEventListener('wheel', function(e) {
+  //TODO: scroll limits & offset to mouse position
+  game.cam.z += e.deltaX / 20;
+});
 
 function mouseEvents(e) {
   mousedown = e.type == "mousedown";
@@ -8,9 +11,3 @@ function mouseEvents(e) {
 canvas.onmousedown = mouseEvents;
 canvas.onmouseup = mouseEvents;
 // canvas.onmousemove = mouseMove;
-// $(document).keydown(keypressed);
-// $(document).keyup(keypressed);
-// document.addEventListener("touchstart", touchHandler, true);
-// document.addEventListener("touchmove", touchHandler, true);
-// document.addEventListener("touchend", touchHandler, true);
-// document.addEventListener("touchcancel", touchHandler, true);
