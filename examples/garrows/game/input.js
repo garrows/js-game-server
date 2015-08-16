@@ -1,6 +1,6 @@
 window.addEventListener('wheel', function(e) {
   //TODO: scroll limits & offset to mouse position
-  game.cam.z += e.deltaX / 20;
+  game.cam.z += e.deltaY / 20;
 });
 
 function mouseEvents(e) {

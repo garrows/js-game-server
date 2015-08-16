@@ -2,20 +2,9 @@ function Game(mapWidth) {
   var t = this;
   t.counter = 0;
   t.players = [];
-  t.map = {
-    d: Array(mapWidth * mapWidth),
-    get: function(x, y) {
-      if (x >= mapWidth || x < 0) throw new Error('X out of bounds in map.get');
-      if (y >= mapWidth || y < 0) throw new Error('Y out of bounds in map.get');
-      return t.map.d[y * mapWidth + x];
-    },
-    set: function(x, y, v) {
-      if (x >= mapWidth || x < 0) throw new Error('X out of bounds in map.set');
-      if (y >= mapWidth || y < 0) throw new Error('Y out of bounds in map.set');
-      t.map.d[y * mapWidth + x] = v;
-    },
-    width: mapWidth
-  }
+  t.hives = [];
+  t.creepers = [];
+  t.mapWidth = mapWidth;
   t.cam = {
     x: mapWidth / 2,
     y: mapWidth / 2,
@@ -27,16 +16,16 @@ Game.prototype = {
   serverUpdated: function(data) {
     this.counter = data.counter;
     this.players = data.players;
-    // this.map.d = data.mapd;
-    this.map.width = data.mapWidth;
+    this.hives = data.hives;
+    this.creepers = data.creepers;
   },
   update: function(io) {
     this.counter++;
     var state = {
       counter: this.counter,
       players: this.players,
-      // mapd: this.map.d,
-      mapWidth: this.map.width,
+      hives: this.hives,
+      creepers: this.creepers,
     };
     io && io.emit('serverUpdated', state);
     return state;
@@ -44,8 +33,8 @@ Game.prototype = {
   generateLevel: function(ts) {
     var nCan = document.createElement('canvas');
     lCan = document.createElement('canvas');
-    nCan.width = nCan.height = this.map.width / 30;
-    lCan.width = lCan.height = this.map.width;
+    nCan.width = nCan.height = this.mapWidth / 30;
+    lCan.width = lCan.height = this.mapWidth;
     var nC = nCan.getContext('2d');
     var lC = lCan.getContext('2d');
 
@@ -53,7 +42,7 @@ Game.prototype = {
     nC.fillStyle = '#353';
     nC.beginPath();
     nC.moveTo(r() * nCan.width, r() * nCan.height);
-    for (var i = 0; i < 30; i++) {
+    for (var i = 0; i < 20; i++) {
       nC.lineTo(r() * nCan.width * 3 - nCan.width, r() * nCan.height * 3 - nCan.height);
     }
     nC.fill();
@@ -73,8 +62,8 @@ Game.prototype = {
     c.fillStyle = '#0e0';
     for (var i = 0; i < this.players.length; i++) {
       var p = this.players[i],
-        x = p.x / this.map.width * canvas.width,
-        y = p.y / this.map.width * canvas.height;
+        x = p.x / this.mapWidth * canvas.width,
+        y = p.y / this.mapWidth * canvas.height;
       c.fillRect(x, y, 10, 10);
     }
   },

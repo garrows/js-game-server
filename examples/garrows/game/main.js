@@ -1,4 +1,4 @@
-var GAME_WIDTH = 1000;
+var GAME_WIDTH = 10000;
 if (typeof log === 'undefined') {
   //browser
   var game = new Game(GAME_WIDTH);
@@ -36,13 +36,6 @@ if (typeof log === 'undefined') {
   var Game = require(__dirname + '/game.js');
   var game = new Game(GAME_WIDTH);
   //Fill map
-  // var i = 0;
-  // for (var y = 0; y < game.map.width; y++) {
-  //   for (var x = 0; x < game.map.width; x++) {
-  //     game.map.set(x, y, i);
-  //     i++;
-  //   }
-  // }
   io = require('sandbox-io');
   log('Loaded sandbox-io');
   io.on('connection', function(socket) {
