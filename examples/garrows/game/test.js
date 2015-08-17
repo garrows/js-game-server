@@ -4,7 +4,7 @@ log = function() {
 canvas = document.getElementById('c');
 c = canvas.getContext('2d');
 
-var GAME_WIDTH = 10000;
+var GAME_WIDTH = 5000;
 var game = new Game(GAME_WIDTH);
 
 

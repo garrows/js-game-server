@@ -6,9 +6,9 @@ function Game(mapWidth) {
   t.creepers = [];
   t.mapWidth = mapWidth;
   t.cam = {
-    x: mapWidth / 2,
-    y: mapWidth / 2,
-    z: .5
+    x: 0,
+    y: 0,
+    z: 1
   }
 }
 
@@ -39,25 +39,56 @@ Game.prototype = {
     var lC = lCan.getContext('2d');
 
     //Generate map noise
-    nC.fillStyle = '#353';
-    nC.beginPath();
-    nC.moveTo(r() * nCan.width, r() * nCan.height);
-    for (var i = 0; i < 20; i++) {
-      nC.lineTo(r() * nCan.width * 3 - nCan.width, r() * nCan.height * 3 - nCan.height);
+    nC.fillStyle = '#232';
+    //Make some rocks
+    for (var i = 0; i < 200; i++) {
+      var x = r(nCan.width * 2) - nCan.width / 2,
+        y = r(nCan.height * 2) - nCan.height / 2;
+      nC.beginPath();
+      //Make a rock with a few points
+      for (var j = 0; j < r(7); j++) {
+        nC.quadraticCurveTo(
+          x + (r() - .5) * nCan.width / 5,
+          y + (r() - .5) * nCan.width / 5,
+          x + (r() - .5) * nCan.width / 5,
+          y + (r() - .5) * nCan.width / 5
+        );
+      }
+      nC.fill();
     }
-    nC.fill();
 
-    lC.fillStyle = '#232';
+    lC.fillStyle = '#353';
     lC.fillRect(0, 0, lCan.width, lCan.height);
     lC.mozImageSmoothingEnabled = lC.msImageSmoothingEnabled = lC.imageSmoothingEnabled = false;
     lC.drawImage(nCan, 0, 0, nCan.width, nCan.height, 0, 0, lCan.width, lCan.height);
 
   },
   draw: function(ts) {
-    var w = lCan.width;
-    var h = lCan.height;
-    // c.drawImage(lCan, this.cam.x-w/2, this.cam.y-h/2, w/2, h/2, 0, 0, w, h);
-    c.drawImage(lCan, this.cam.x-w/2*this.cam.z, this.cam.y-h/2*this.cam.z, w/2*this.cam.z, h/2*this.cam.z, 0, 0, w, h);
+    var dw = canvas.width,
+      dh = canvas.height,
+      sx = this.cam.x,
+      sy = this.cam.y,
+      sw = dw * this.cam.z,
+      sh = dh * this.cam.z;
+    //Zoom limits
+    if (game.cam.z < .2) {
+      game.cam.z = .2;
+      return this.draw(ts);
+    }
+    if (sw / lCan.width > 1) {
+      sw *= (2 - sw / lCan.width);
+      this.cam.z = sw / dw;
+      return this.draw(ts);
+    }
+    if (sh / lCan.height > 1) {
+      sh *= (2 - sh / lCan.height);
+      this.cam.z = sh / dh;
+      return this.draw(ts);
+
+    }
+    c.fillStyle = 'red';
+    c.fillRect(0, 0, dw, dh);
+    c.drawImage(lCan, sx, sy, sw, sh, 0, 0, dw, dh);
 
     c.fillStyle = '#0e0';
     for (var i = 0; i < this.players.length; i++) {
@@ -76,9 +107,10 @@ Game.prototype = {
 typeof module !== 'undefined' && (module.exports = Game);
 
 
-var s = 5;
+var s = 1;
 
-function r() {
+function r(max) {
+  var max = max ? max : 1;
   var x = Math.sin(s++) * 10000;
-  return x - Math.floor(x);
+  return (x - Math.floor(x)) * max;
 }
