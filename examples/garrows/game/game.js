@@ -6,7 +6,7 @@ function Game(mapWidth) {
   t.creepers = [];
   t.mapWidth = mapWidth;
   t.cam = {
-    x: 0,
+    x: 3662,
     y: 0,
     z: 1
   }
@@ -64,6 +64,8 @@ Game.prototype = {
 
   },
   draw: function(ts) {
+    this.cam.x = this.cam.x > 0 ? this.cam.x : 0;
+    this.cam.y = this.cam.y > 0 ? this.cam.y : 0;
     var dw = canvas.width,
       dh = canvas.height,
       sx = this.cam.x,
@@ -84,10 +86,22 @@ Game.prototype = {
       sh *= (2 - sh / lCan.height);
       this.cam.z = sh / dh;
       return this.draw(ts);
-
     }
+    if (sx + sw > lCan.width) {
+      this.cam.x -= sx + sw - lCan.width;
+      return this.draw(ts);
+    }
+    if (sy + sh > lCan.height) {
+      this.cam.y -= sy + sh - lCan.height;
+      return this.draw(ts);
+    }
+
+
+
+    //Non-visible area
     c.fillStyle = 'red';
     c.fillRect(0, 0, dw, dh);
+    //Draw level
     c.drawImage(lCan, sx, sy, sw, sh, 0, 0, dw, dh);
 
     c.fillStyle = '#0e0';
