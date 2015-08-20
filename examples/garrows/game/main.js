@@ -35,6 +35,7 @@ if (typeof log === 'undefined') {
 } else {
   var Game = require(__dirname + '/game.js');
   var game = new Game(GAME_WIDTH);
+  game.generateServerState(10);
   //Fill map
   io = require('sandbox-io');
   log('Loaded sandbox-io');

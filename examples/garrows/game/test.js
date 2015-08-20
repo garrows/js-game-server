@@ -27,18 +27,28 @@ describe("GarrowsGame", function() {
         players: [{
           id: 1,
           name: 'Testing Player',
-          x: 0,
-          y: 0
+          x: GAME_WIDTH/2,
+          y: GAME_WIDTH/2
         }]
       });
       game.counter.should.eql(2);
     });
   });
 
+  describe("when generating level", function() {
+    it("should genrate level with creeps, hives & food", function() {
+      var COUNT = 10;
+      game.generateServerState(COUNT);
+      game.food.length.should.eql(COUNT);
+      game.hives.length.should.eql(COUNT);
+      game.creeps.length.should.eql(0);
+    });
+  });
+
   describe("when drawing", function() {
     it("should genrate level and draw it", function() {
       game.generateLevel();
-      game.cam.z = 1;
+      game.cam.z = 12.5; //Magic full zoom number
       game.draw();
       var debugLevelCanvas = document.getElementById('levelCanvas');
       var debugLevelCtx = debugLevelCanvas.getContext('2d');

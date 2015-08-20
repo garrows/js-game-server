@@ -2,11 +2,12 @@ function Game(mapWidth) {
   var t = this;
   t.counter = 0;
   t.players = [];
+  t.food = [];
   t.hives = [];
-  t.creepers = [];
+  t.creeps = [];
   t.mapWidth = mapWidth;
   t.cam = {
-    x: 3662,
+    x: 0,
     y: 0,
     z: 1
   }
@@ -14,21 +15,53 @@ function Game(mapWidth) {
 
 Game.prototype = {
   serverUpdated: function(data) {
-    this.counter = data.counter;
-    this.players = data.players;
-    this.hives = data.hives;
-    this.creepers = data.creepers;
+    this.counter = data.counter ? data.counter : this.counter;
+    this.players = data.players ? data.players : this.players;
+    this.food = data.food ? data.food : this.food;
+    this.hives = data.hives ? data.hives : this.hives;
+    this.creeps = data.creeps ? data.creeps : this.creeps;
   },
   update: function(io) {
     this.counter++;
     var state = {
       counter: this.counter,
       players: this.players,
+      food: this.food,
       hives: this.hives,
-      creepers: this.creepers,
+      creeps: this.creeps,
     };
     io && io.emit('serverUpdated', state);
     return state;
+  },
+  generateServerState: function(n) {
+    var w = this.mapWidth;
+    for (var i = 0; i < n; i++) {
+      this.food.push({
+        x: r(w),
+        y: r(w),
+        health: 100
+      });
+      var hive = {
+        x: r(w),
+        y: r(w),
+        health: 100,
+        creeps: [],
+        update: function(ts) {
+          log('creepCount', hive.creepCount);
+          if (hive.creeps.length < 1) {
+            var creep = {
+              x: r(w),
+              y: r(w),
+              health: 100,
+              update: function(ts) {}
+            }
+            hive.creeps.push(creep);
+            this.creeps.push(creep);
+          }
+        }
+      };
+      this.hives.push(hive);
+    }
   },
   generateLevel: function(ts) {
     var nCan = document.createElement('canvas');
@@ -104,12 +137,22 @@ Game.prototype = {
     //Draw level
     c.drawImage(lCan, sx, sy, sw, sh, 0, 0, dw, dh);
 
+    //Draw players
     c.fillStyle = '#0e0';
+    var w = this.mapWidth/canvas.width;
     for (var i = 0; i < this.players.length; i++) {
       var p = this.players[i],
         x = p.x / this.mapWidth * canvas.width,
         y = p.y / this.mapWidth * canvas.height;
-      c.fillRect(x, y, 10, 10);
+      c.fillRect(x, y, w, w);
+    }
+    //Draw players
+    c.fillStyle = '#e00';
+    for (var i = 0; i < this.hives.length; i++) {
+      var p = this.hives[i],
+        x = p.x / this.mapWidth * canvas.width,
+        y = p.y / this.mapWidth * canvas.height;
+      c.fillRect(x, y, w, w);
     }
   },
   drawLoop: function(dt) {
@@ -122,7 +165,6 @@ typeof module !== 'undefined' && (module.exports = Game);
 
 
 var s = 1;
-
 function r(max) {
   var max = max ? max : 1;
   var x = Math.sin(s++) * 10000;
