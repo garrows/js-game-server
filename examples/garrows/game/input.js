@@ -1,12 +1,10 @@
 window.addEventListener('wheel', function(e) {
-  //TODO: scroll limits & offset to mouse position
   game.cam.z += e.deltaY / 200;
-  // log(game.cam.z);
 });
 
 var mousedown = false;
 canvas.onmouseup = canvas.onmousedown = function(e) {
-  mousedown = e.type == "mousedown";
+  mousedown = e.type === 'mousedown';
   var x = e.layerX - canvas.offsetParent.offsetLeft,
    y = e.layerY - canvas.offsetParent.offsetTop;
 }

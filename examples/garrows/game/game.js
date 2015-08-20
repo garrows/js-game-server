@@ -99,35 +99,25 @@ Game.prototype = {
   draw: function(ts) {
     this.cam.x = this.cam.x > 0 ? this.cam.x : 0;
     this.cam.y = this.cam.y > 0 ? this.cam.y : 0;
+    this.cam.z = this.cam.z > 1 ? 1 : this.cam.z;
+    this.cam.z = this.cam.z < .1 ? .1 : this.cam.z;
     var dw = canvas.width,
       dh = canvas.height,
       sx = this.cam.x,
       sy = this.cam.y,
-      sw = dw * this.cam.z,
-      sh = dh * this.cam.z;
-    //Zoom limits
-    if (game.cam.z < .2) {
-      game.cam.z = .2;
-      return this.draw(ts);
-    }
-    if (sw / lCan.width > 1) {
-      sw *= (2 - sw / lCan.width);
-      this.cam.z = sw / dw;
-      return this.draw(ts);
-    }
-    if (sh / lCan.height > 1) {
-      sh *= (2 - sh / lCan.height);
-      this.cam.z = sh / dh;
-      return this.draw(ts);
-    }
+      sw = lCan.width * this.cam.z,
+      sh = lCan.height * this.cam.z;
     if (sx + sw > lCan.width) {
+      log('too right')
       this.cam.x -= sx + sw - lCan.width;
       return this.draw(ts);
     }
     if (sy + sh > lCan.height) {
+      log('too low')
       this.cam.y -= sy + sh - lCan.height;
       return this.draw(ts);
     }
+    // log(sx, sy, sw, sh);
 
 
 
@@ -139,7 +129,7 @@ Game.prototype = {
 
     //Draw players
     c.fillStyle = '#0e0';
-    var w = this.mapWidth/canvas.width;
+    var w = this.mapWidth / canvas.width;
     for (var i = 0; i < this.players.length; i++) {
       var p = this.players[i],
         x = p.x / this.mapWidth * canvas.width,
@@ -165,6 +155,7 @@ typeof module !== 'undefined' && (module.exports = Game);
 
 
 var s = 1;
+
 function r(max) {
   var max = max ? max : 1;
   var x = Math.sin(s++) * 10000;

@@ -48,7 +48,7 @@ describe("GarrowsGame", function() {
   describe("when drawing", function() {
     it("should genrate level and draw it", function() {
       game.generateLevel();
-      game.cam.z = 12.5; //Magic full zoom number
+      game.cam.z = 1; //Magic full zoom number
       game.draw();
       var debugLevelCanvas = document.getElementById('levelCanvas');
       var debugLevelCtx = debugLevelCanvas.getContext('2d');
