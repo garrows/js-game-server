@@ -117,7 +117,6 @@ Game.prototype = {
       this.cam.y -= sy + sh - lCan.height;
       return this.draw(ts);
     }
-    // log(sx, sy, sw, sh);
 
 
 
@@ -127,22 +126,26 @@ Game.prototype = {
     //Draw level
     c.drawImage(lCan, sx, sy, sw, sh, 0, 0, dw, dh);
 
+    var w = dw / (lCan.width * this.cam.z);
     //Draw players
-    c.fillStyle = '#0e0';
-    var w = this.mapWidth / canvas.width;
+    c.strokeWidth = 1;
+    c.fillStyle = c.strokeStyle = '#0e0';
     for (var i = 0; i < this.players.length; i++) {
       var p = this.players[i],
-        x = p.x / this.mapWidth * canvas.width,
-        y = p.y / this.mapWidth * canvas.height;
+        x = p.x * w - (this.cam.x * w),
+        y = p.y * w - (this.cam.y * w);
+      log(x, y);
       c.fillRect(x, y, w, w);
+      c.strokeRect(x - 1, y - 1, w + 2, w + 2);
     }
     //Draw players
-    c.fillStyle = '#e00';
+    c.fillStyle = c.strokeStyle = '#e00';
     for (var i = 0; i < this.hives.length; i++) {
       var p = this.hives[i],
-        x = p.x / this.mapWidth * canvas.width,
-        y = p.y / this.mapWidth * canvas.height;
+        x = p.x * w - (this.cam.x * w),
+        y = p.y * w - (this.cam.y * w);
       c.fillRect(x, y, w, w);
+      c.strokeRect(x - 1, y - 1, w + 2, w + 2);
     }
   },
   drawLoop: function(dt) {

@@ -4,7 +4,7 @@ log = function() {
 canvas = document.getElementById('c');
 c = canvas.getContext('2d');
 
-var GAME_WIDTH = 5000;
+var GAME_WIDTH = 2500;
 var game = new Game(GAME_WIDTH);
 
 
@@ -27,8 +27,8 @@ describe("GarrowsGame", function() {
         players: [{
           id: 1,
           name: 'Testing Player',
-          x: GAME_WIDTH/2,
-          y: GAME_WIDTH/2
+          x: GAME_WIDTH/16,
+          y: GAME_WIDTH/16
         }]
       });
       game.counter.should.eql(2);
@@ -53,6 +53,13 @@ describe("GarrowsGame", function() {
       var debugLevelCanvas = document.getElementById('levelCanvas');
       var debugLevelCtx = debugLevelCanvas.getContext('2d');
       debugLevelCtx.drawImage(lCan, 0, 0, lCan.width, lCan.height, 0, 0, debugLevelCanvas.width, debugLevelCanvas.height);
+    });
+    it("should draw zoomed level", function() {
+      var canvas = document.getElementById('canvasZoomed');
+      c = canvas.getContext('2d');
+      game.cam.z = 1/8;
+      game.cam.x += game.mapWidth/32;
+      game.draw();
     });
   });
 

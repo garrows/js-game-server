@@ -1,4 +1,4 @@
-var GAME_WIDTH = 5000;
+var GAME_WIDTH = 2500;
 if (typeof log === 'undefined') {
   //browser
   var game = new Game(GAME_WIDTH);
