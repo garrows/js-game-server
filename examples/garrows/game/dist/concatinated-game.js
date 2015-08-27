@@ -1,3 +1,60 @@
+function setupInput() {
+  window.addEventListener('wheel', function(e) {
+    game.cam.z += e.deltaY / 200;
+  });
+
+  var mousedown = false;
+  canvas.onmouseup = canvas.onmousedown = function(e) {
+    mousedown = e.type === 'mousedown';
+    var x = e.layerX - canvas.offsetParent.offsetLeft,
+      y = e.layerY - canvas.offsetParent.offsetTop;
+  }
+  canvas.onmousemove = function(e) {
+    if (!mousedown) return;
+    game.cam.x -= e.movementX;
+    game.cam.y -= e.movementY;
+    if (game.cam.x < 0) game.cam.x = 0;
+    if (game.cam.y < 0) game.cam.y = 0;
+  }
+}
+
+function Entity(game, x, y) {
+  var t = this;
+  t.color = '#e00';
+  t.game = game;
+  t.x = x;
+  t.y = y;
+}
+Entity.prototype = {
+  deserialize: function(data) {
+    var t = this;
+    t.x = data.x;
+    t.y = data.y;
+    t.color = data.color;
+  },
+  draw: function(ts) {
+    var t = this;
+    var w = canvas.width / (lCan.width * t.game.cam.z);
+    c.strokeWidth = 1;
+    c.fillStyle = c.strokeStyle = t.color;
+
+    var x = t.x * w - (t.game.cam.x * w),
+      y = t.y * w - (t.game.cam.y * w);
+    c.fillRect(x, y, w, w);
+    c.strokeRect(x - 1, y - 1, w + 2, w + 2);
+
+  },
+  toJSON: function() {
+    var t = this;
+    return {
+      x: t.x,
+      y: t.y,
+      color: t.color
+    }
+  }
+
+};
+
 function Game(mapWidth) {
   var t = this;
   t.counter = 0;
@@ -218,3 +275,61 @@ Entity.prototype = {
   }
 
 };
+
+var GAME_WIDTH = 2500;
+if (typeof window != 'undefined') {
+  var game = new Game(GAME_WIDTH);
+
+  log = function() {
+    return console.log.apply(console, arguments);
+  };
+  db = function(key, val) {
+    if (arguments.length === 2) {
+      localStorage.setItem(key, val);
+    } else {
+      return localStorage.getItem(key);
+    }
+  };
+  io = io(document.location.href);
+  io.on('serverUpdated', game.serverUpdated.bind(game));
+  var name = db('name') || 'Unnamed Player ' + Math.round(Math.random() * 10000);
+  db('name', name);
+  io.emit('register', {
+    name: name
+  })
+  canvas = document.getElementById('c');
+
+  function resize() {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+  }
+  resize();
+  setupInput();
+  window.addEventListener('resize', resize, false);
+
+  c = canvas.getContext('2d');
+  game.generateLevel();
+  game.drawLoop(0);
+} else {
+  var game = new Game(GAME_WIDTH);
+  game.generateServerState(10);
+  //Fill map
+  io = require('sandbox-io');
+  log('Loaded sandbox-io');
+  io.on('connection', function(socket) {
+    socket.on('event', function(data) {});
+    socket.on('register', function(data) {
+      var found = game.players.some(function(p) {
+        return p.name === data.name;
+      })
+      if (!found) {
+        var player = new Entity(game, Math.round(Math.random() * GAME_WIDTH), Math.round(Math.random() * GAME_WIDTH))
+        player.name = data.name;
+        game.players.push(player);
+        // db('records', records);
+      }
+    });
+    socket.on('disconnect', function() {});
+  });
+  setInterval(game.update.bind(game, io), 1000);
+}

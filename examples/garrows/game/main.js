@@ -1,6 +1,5 @@
 var GAME_WIDTH = 2500;
-if (typeof log === 'undefined') {
-  //browser
+if (typeof window != 'undefined') {
   var game = new Game(GAME_WIDTH);
 
   log = function() {
@@ -27,13 +26,13 @@ if (typeof log === 'undefined') {
     canvas.height = canvas.clientHeight;
   }
   resize();
+  setupInput();
   window.addEventListener('resize', resize, false);
 
   c = canvas.getContext('2d');
   game.generateLevel();
   game.drawLoop(0);
 } else {
-  var Game = require(__dirname + '/game.js');
   var game = new Game(GAME_WIDTH);
   game.generateServerState(10);
   //Fill map
@@ -46,11 +45,9 @@ if (typeof log === 'undefined') {
         return p.name === data.name;
       })
       if (!found) {
-        game.players.push({
-          name: data.name,
-          x: Math.round(Math.random() * GAME_WIDTH),
-          y: Math.round(Math.random() * GAME_WIDTH)
-        });
+        var player = new Entity(game, Math.round(Math.random() * GAME_WIDTH), Math.round(Math.random() * GAME_WIDTH))
+        player.name = data.name;
+        game.players.push(player);
         // db('records', records);
       }
     });
