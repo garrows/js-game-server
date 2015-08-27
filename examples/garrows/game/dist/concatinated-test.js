@@ -1,5 +1,6 @@
 function Entity(game, x, y) {
   var t = this;
+  t.type = 'Entity';
   t.color = '#e00';
   t.game = game;
   t.x = x;
@@ -10,6 +11,7 @@ Entity.prototype = {
     var t = this;
     t.x = data.x;
     t.y = data.y;
+    t.type = data.type;
     t.color = data.color;
   },
   draw: function(ts) {
@@ -20,20 +22,44 @@ Entity.prototype = {
 
     var x = t.x * w - (t.game.cam.x * w),
       y = t.y * w - (t.game.cam.y * w);
-    c.fillRect(x, y, w, w);
-    c.strokeRect(x - 1, y - 1, w + 2, w + 2);
 
+    t.drawDetails(ts, x, y, w);
+  },
+  drawDetails: function(ts, x, y, w) {
+    c.fillRect(x, y, w, w);
+    c.strokeRect(x - c.strokeWidth / 2, y - c.strokeWidth / 2, w + c.strokeWidth, w + c.strokeWidth);
   },
   toJSON: function() {
     var t = this;
     return {
       x: t.x,
       y: t.y,
-      color: t.color
+      color: t.color,
+      type: t.type
     }
   }
 
 };
+
+
+
+function Hive(game, x, y) {
+  var t = this;
+  t.type = 'Hive';
+  t.color = '#00e';
+  t.game = game;
+  t.x = x;
+  t.y = y;
+}
+Hive.prototype = new Entity;
+Hive.prototype.constructor = Hive;
+Hive.prototype.drawDetails = function(ts, x, y, w) {
+  var t = this;
+  c.strokeWidth = 8;
+  console.log('drawDetails')
+  Entity.prototype.drawDetails.call(t, ts, x, y, w);
+
+}
 
 function Game(mapWidth) {
   var t = this;
@@ -56,7 +82,7 @@ Game.prototype = {
       if (!serialized) return;
       for (var i = 0; i < serialized.length; i++) {
         if (!entities[i]) {
-          entities[i] = new Entity(game, 0, 0);
+          entities[i] = new window[serialized[i].type](game, 0, 0);
         }
         entities[i].deserialize(serialized[i]);
       }
@@ -105,7 +131,7 @@ Game.prototype = {
       //     }
       //   }
       // };
-      var hive = new Entity(this, r(w), r(w));
+      var hive = new Hive(this, r(w), r(w));
       this.hives.push(hive);
     }
   },
@@ -173,16 +199,6 @@ Game.prototype = {
     c.drawImage(lCan, sx, sy, sw, sh, 0, 0, dw, dh);
 
     var w = dw / (lCan.width * this.cam.z);
-    // //Draw players
-    //
-    // c.fillStyle = c.strokeStyle = '#0e0';
-    // for (var i = 0; i < this.players.length; i++) {
-    //   var p = this.players[i],
-    //     x = p.x * w - (this.cam.x * w),
-    //     y = p.y * w - (this.cam.y * w);
-    //   c.fillRect(x, y, w, w);
-    //   c.strokeRect(x - 1, y - 1, w + 2, w + 2);
-    // }
     for (var i = 0; i < this.players.length; i++) {
       this.players[i].draw(ts);
     }
@@ -212,49 +228,6 @@ function r(max) {
   var x = Math.sin(s++) * 10000;
   return (x - Math.floor(x)) * max;
 }
-
-
-
-
-
-
-
-function Entity(game, x, y) {
-  var t = this;
-  t.color = '#e00';
-  t.game = game;
-  t.x = x;
-  t.y = y;
-}
-Entity.prototype = {
-  deserialize: function(data) {
-    var t = this;
-    t.x = data.x;
-    t.y = data.y;
-    t.color = data.color;
-  },
-  draw: function(ts) {
-    var t = this;
-    var w = canvas.width / (lCan.width * t.game.cam.z);
-    c.strokeWidth = 1;
-    c.fillStyle = c.strokeStyle = t.color;
-
-    var x = t.x * w - (t.game.cam.x * w),
-      y = t.y * w - (t.game.cam.y * w);
-    c.fillRect(x, y, w, w);
-    c.strokeRect(x - 1, y - 1, w + 2, w + 2);
-
-  },
-  toJSON: function() {
-    var t = this;
-    return {
-      x: t.x,
-      y: t.y,
-      color: t.color
-    }
-  }
-
-};
 
 log = function() {
   return console.log.apply(console, arguments);
