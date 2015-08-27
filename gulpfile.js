@@ -50,9 +50,7 @@ gulp.task('server', ['js-compilation'], function() {
 });
 
 
-gulp.task('default', ['server']);
-
-gulp.task('run', ['server'], function() {
+gulp.task('default', ['server'], function() {
   livereload.listen();
   gulp.watch('examples/garrows/game/*.js', ['js-compilation']);
 });

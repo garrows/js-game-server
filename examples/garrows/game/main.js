@@ -53,5 +53,5 @@ if (typeof window != 'undefined') {
     });
     socket.on('disconnect', function() {});
   });
-  setInterval(game.update.bind(game, io), 1000);
+  setInterval(game.update.bind(game, io), 50);
 }

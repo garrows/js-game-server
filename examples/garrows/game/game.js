@@ -9,7 +9,7 @@ function Game(mapWidth) {
   t.cam = {
     x: 0,
     y: 0,
-    z: 1
+    z: .35
   }
 }
 
@@ -31,14 +31,21 @@ Game.prototype = {
     updateEntities(this.creeps, data.creeps)
   },
   update: function(io) {
-    this.counter++;
+    var t = this;
+    t.counter++;
+    var updatables = ['players', 'hives', 'creeps', 'food'];
     var state = {
-      counter: this.counter,
-      players: this.players,
-      food: this.food,
-      hives: this.hives,
-      creeps: this.creeps,
+      counter: t.counter
     };
+
+    updatables.forEach(function(name) {
+      log('name', name, t[name].length);
+      for (var i = 0; i < t[name].length; i++) {
+        t[name][i].update(t.counter);
+      }
+      state[name] = t[name];
+    });
+
     io && io.emit('serverUpdated', state);
     return state;
   },
@@ -48,26 +55,6 @@ Game.prototype = {
       var food = new Entity(this, r(w), r(w));
       food.color = '#ff0';
       this.food.push(food);
-
-      // var hive = {
-      //   x: r(w),
-      //   y: r(w),
-      //   health: 100,
-      //   creeps: [],
-      //   update: function(ts) {
-      //     log('creepCount', hive.creepCount);
-      //     if (hive.creeps.length < 1) {
-      //       var creep = {
-      //         x: r(w),
-      //         y: r(w),
-      //         health: 100,
-      //         update: function(ts) {}
-      //       }
-      //       hive.creeps.push(creep);
-      //       this.creeps.push(creep);
-      //     }
-      //   }
-      // };
       var hive = new Hive(this, r(w), r(w));
       this.hives.push(hive);
     }

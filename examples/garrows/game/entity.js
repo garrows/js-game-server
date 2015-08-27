@@ -14,6 +14,13 @@ Entity.prototype = {
     t.type = data.type;
     t.color = data.color;
   },
+  update: function(counter) {
+    var t = this;
+    if (t.x < 0) t.x = t.game.mapWidth-1;
+    if (t.y < 0) t.y = t.game.mapWidth-1;
+    if (t.x >= t.game.mapWidth) t.x = 0;
+    if (t.y >= t.game.mapWidth) t.y = 0;
+  },
   draw: function(ts) {
     var t = this;
     var w = canvas.width / (lCan.width * t.game.cam.z);
@@ -50,6 +57,7 @@ function Hive(game, x, y) {
   t.game = game;
   t.x = x;
   t.y = y;
+  t.creepCount = 0;
 }
 Hive.prototype = new Entity;
 Hive.prototype.constructor = Hive;
@@ -57,5 +65,42 @@ Hive.prototype.drawDetails = function(ts, x, y, w) {
   var t = this;
   c.strokeWidth = 8;
   Entity.prototype.drawDetails.call(t, ts, x, y, w);
+}
+Hive.prototype.update = function(counter) {
+  var t = this;
+  if (t.creepCount < 1) {
+    t.creepCount++;
+    var creep = new Creep(game, t.x, t.y);
+    t.game.creeps.push(creep);
+  }
+  Entity.prototype.update.call(t, counter);
+}
+
+
+
+function Creep(game, x, y) {
+  var t = this;
+  t.type = 'Creep';
+  t.color = '#000';
+  t.game = game;
+  t.x = x;
+  t.y = y;
+}
+Creep.prototype = new Entity;
+Creep.prototype.constructor = Creep;
+Creep.prototype.drawDetails = function(ts, x, y, w) {
+  var t = this;
+  c.strokeWidth = 4;
+  Entity.prototype.drawDetails.call(t, ts, x, y, w);
+}
+Creep.prototype.update = function(counter) {
+  var t = this;
+  t.x += 1;
+  // log('creepCount', hive.creepCount);
+  // if (hive.creepCount < 1) {
+  //   var creep = new Creep(game, t.x, t.y);
+  //   t.game.creeps.push(creep);
+  // }
+  Entity.prototype.update.call(t, counter);
 
 }
