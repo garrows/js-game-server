@@ -29,12 +29,16 @@ gulp.task('js-test', function() {
     .pipe(gulp.dest('examples/garrows/game/dist'));
 });
 
-gulp.task('server', ['js-game', 'js-test'], function() {
+gulp.task('js-compilation', ['js-game', 'js-test']);
+
+gulp.task('server', ['js-compilation'], function() {
   livereload.listen();
 
   nodemon({
     script: 'index.js',
-    ext: 'js'
+    ext: 'js',
+    ignore: ['concatinated-game.js', 'concatinated-test.js'],
+    // tasks: ['js-compilation']
   }).on('restart', function() {
     // when the app has restarted, run livereload.
     setTimeout(function() {
@@ -48,7 +52,7 @@ gulp.task('server', ['js-game', 'js-test'], function() {
 
 gulp.task('default', ['server']);
 
-gulp.task('run', ['isDebug', 'express', 'default'], function() {
+gulp.task('run', ['server'], function() {
   livereload.listen();
-  // gulp.watch('src/*.js*', ['server']);
+  gulp.watch('examples/garrows/game/*.js', ['js-compilation']);
 });

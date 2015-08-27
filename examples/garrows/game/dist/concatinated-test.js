@@ -56,7 +56,6 @@ Hive.prototype.constructor = Hive;
 Hive.prototype.drawDetails = function(ts, x, y, w) {
   var t = this;
   c.strokeWidth = 8;
-  console.log('drawDetails')
   Entity.prototype.drawDetails.call(t, ts, x, y, w);
 
 }
