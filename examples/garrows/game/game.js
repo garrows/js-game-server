@@ -52,10 +52,10 @@ Game.prototype = {
   generateServerState: function(n) {
     var w = this.mapWidth;
     for (var i = 0; i < n; i++) {
-      var food = new Entity(this, r(w), r(w));
-      food.color = '#ff0';
-      this.food.push(food);
+      this.food.push(new Food(this, r(w), r(w)));
+      this.food.push(new Food(this, r(w), r(w)));
       var hive = new Hive(this, r(w), r(w));
+      this.food.push(new Food(this, r(w), r(w)));
       this.hives.push(hive);
     }
   },

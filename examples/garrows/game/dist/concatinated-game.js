@@ -36,8 +36,8 @@ Entity.prototype = {
   },
   update: function(counter) {
     var t = this;
-    if (t.x < 0) t.x = t.game.mapWidth-1;
-    if (t.y < 0) t.y = t.game.mapWidth-1;
+    if (t.x < 0) t.x = t.game.mapWidth - 1;
+    if (t.y < 0) t.y = t.game.mapWidth - 1;
     if (t.x >= t.game.mapWidth) t.x = 0;
     if (t.y >= t.game.mapWidth) t.y = 0;
   },
@@ -68,8 +68,6 @@ Entity.prototype = {
 
 };
 
-
-
 function Hive(game, x, y) {
   var t = this;
   t.type = 'Hive';
@@ -96,8 +94,6 @@ Hive.prototype.update = function(counter) {
   Entity.prototype.update.call(t, counter);
 }
 
-
-
 function Creep(game, x, y) {
   var t = this;
   t.type = 'Creep';
@@ -105,6 +101,7 @@ function Creep(game, x, y) {
   t.game = game;
   t.x = x;
   t.y = y;
+  t.d = r(2*Math.PI);
 }
 Creep.prototype = new Entity;
 Creep.prototype.constructor = Creep;
@@ -115,15 +112,29 @@ Creep.prototype.drawDetails = function(ts, x, y, w) {
 }
 Creep.prototype.update = function(counter) {
   var t = this;
-  t.x += 1;
-  // log('creepCount', hive.creepCount);
-  // if (hive.creepCount < 1) {
-  //   var creep = new Creep(game, t.x, t.y);
-  //   t.game.creeps.push(creep);
-  // }
+  t.game.food.forEach(function(f) {
+    var d = Math.sqrt(Math.pow(t.x - f.x, 2) + Math.pow(t.y - f.y, 2));
+    if (d < 50) {
+      t.color = '#0f0';
+    }
+  });
+  t.x += Math.sin(t.d);
+  t.y += Math.cos(t.d);
+
   Entity.prototype.update.call(t, counter);
 
 }
+
+function Food(game, x, y) {
+  var t = this;
+  t.type = 'Food';
+  t.color = '#ff0';
+  t.game = game;
+  t.x = x;
+  t.y = y;
+}
+Food.prototype = new Entity;
+Food.prototype.constructor = Food;
 
 function Game(mapWidth) {
   var t = this;
@@ -179,10 +190,10 @@ Game.prototype = {
   generateServerState: function(n) {
     var w = this.mapWidth;
     for (var i = 0; i < n; i++) {
-      var food = new Entity(this, r(w), r(w));
-      food.color = '#ff0';
-      this.food.push(food);
+      this.food.push(new Food(this, r(w), r(w)));
+      this.food.push(new Food(this, r(w), r(w)));
       var hive = new Hive(this, r(w), r(w));
+      this.food.push(new Food(this, r(w), r(w)));
       this.hives.push(hive);
     }
   },
@@ -316,7 +327,7 @@ if (typeof window != 'undefined') {
   game.drawLoop(0);
 } else {
   var game = new Game(GAME_WIDTH);
-  game.generateServerState(10);
+  game.generateServerState(20);
   //Fill map
   io = require('sandbox-io');
   log('Loaded sandbox-io');

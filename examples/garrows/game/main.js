@@ -34,7 +34,7 @@ if (typeof window != 'undefined') {
   game.drawLoop(0);
 } else {
   var game = new Game(GAME_WIDTH);
-  game.generateServerState(10);
+  game.generateServerState(20);
   //Fill map
   io = require('sandbox-io');
   log('Loaded sandbox-io');
