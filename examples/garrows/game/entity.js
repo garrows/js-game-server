@@ -1,18 +1,19 @@
 function Entity(game, x, y) {
   var t = this;
+  t.game = game;
+  t.props = ['type', 'color', 'x', 'y'];
   t.type = 'Entity';
   t.color = '#e00';
-  t.game = game;
   t.x = x;
   t.y = y;
 }
 Entity.prototype = {
+  constructor: Entity,
   deserialize: function(data) {
     var t = this;
-    t.x = data.x;
-    t.y = data.y;
-    t.type = data.type;
-    t.color = data.color;
+    t.props.forEach(function(p) {
+      t[p] = data[p];
+    });
   },
   update: function(counter) {
     var t = this;
@@ -37,13 +38,11 @@ Entity.prototype = {
     c.strokeRect(x - c.strokeWidth / 2, y - c.strokeWidth / 2, w + c.strokeWidth, w + c.strokeWidth);
   },
   toJSON: function() {
-    var t = this;
-    return {
-      x: t.x,
-      y: t.y,
-      color: t.color,
-      type: t.type
-    }
+    var t = this, r = {};
+    t.props.forEach(function(p) {
+      r[p] = t[p];
+    });
+    return r;
   }
 
 };

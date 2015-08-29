@@ -39,7 +39,6 @@ Game.prototype = {
     };
 
     updatables.forEach(function(name) {
-      log('name', name, t[name].length);
       for (var i = 0; i < t[name].length; i++) {
         t[name][i].update(t.counter);
       }
@@ -145,7 +144,7 @@ Game.prototype = {
 typeof module !== 'undefined' && (module.exports = Game);
 
 
-var s = 1;
+var s = 4;
 
 function r(max) {
   var max = max ? max : 1;

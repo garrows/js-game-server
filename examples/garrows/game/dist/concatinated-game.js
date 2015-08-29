@@ -20,19 +20,20 @@ function setupInput() {
 
 function Entity(game, x, y) {
   var t = this;
+  t.game = game;
+  t.props = ['type', 'color', 'x', 'y'];
   t.type = 'Entity';
   t.color = '#e00';
-  t.game = game;
   t.x = x;
   t.y = y;
 }
 Entity.prototype = {
+  constructor: Entity,
   deserialize: function(data) {
     var t = this;
-    t.x = data.x;
-    t.y = data.y;
-    t.type = data.type;
-    t.color = data.color;
+    t.props.forEach(function(p) {
+      t[p] = data[p];
+    });
   },
   update: function(counter) {
     var t = this;
@@ -57,25 +58,22 @@ Entity.prototype = {
     c.strokeRect(x - c.strokeWidth / 2, y - c.strokeWidth / 2, w + c.strokeWidth, w + c.strokeWidth);
   },
   toJSON: function() {
-    var t = this;
-    return {
-      x: t.x,
-      y: t.y,
-      color: t.color,
-      type: t.type
-    }
+    var t = this, r = {};
+    t.props.forEach(function(p) {
+      r[p] = t[p];
+    });
+    return r;
   }
 
 };
 
 function Hive(game, x, y) {
   var t = this;
+  Entity.prototype.constructor.call(t, game, x, y);
   t.type = 'Hive';
   t.color = '#00e';
-  t.game = game;
-  t.x = x;
-  t.y = y;
   t.creepCount = 0;
+  t.props.push('creepCount');
 }
 Hive.prototype = new Entity;
 Hive.prototype.constructor = Hive;
@@ -96,37 +94,61 @@ Hive.prototype.update = function(counter) {
 
 function Creep(game, x, y) {
   var t = this;
+  Entity.prototype.constructor.call(t, game, x, y);
   t.type = 'Creep';
   t.color = '#000';
-  t.game = game;
-  t.x = x;
-  t.y = y;
+  t.hiveX = x;
+  t.hiveY = y;
+  t.eating = false;
+  t.energy = 0;
   t.d = r(2 * Math.PI);
+  t.props.push('hiveX', 'hiveY', 'eating', 'energy', 'd');
 }
 Creep.prototype = new Entity;
 Creep.prototype.constructor = Creep;
 Creep.prototype.drawDetails = function(ts, x, y, w) {
   var t = this;
   c.strokeWidth = 4;
+
   Entity.prototype.drawDetails.call(t, ts, x, y, w);
+  // c.beginPath();
+  // c.moveTo(x, y);
+  // c.arc(x, y, 100, t.d - Math.PI / 2, t.d - Math.PI / 2 + 2 * Math.PI);
+  // c.stroke();
 }
 Creep.prototype.update = function(counter) {
   var t = this;
-  var found = t.game.food.some(function(f) {
-    var d = Math.sqrt(Math.pow(t.x - f.x, 2) + Math.pow(t.y - f.y, 2));
-    if (d < 80 && d > 1) {
-      t.color = '#0f0';
-      //soh cah toa
-      // t.d = Math.atan(f.y - t.y / f.x - t.x);
-      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
-    } else if (d <= 1) {
-      return true;
-    }
-    return false;
-  });
-  if (!found) {
+  if (!t.eating && t.energy < 5) {
+    t.eating = t.game.food.some(function(f) {
+      var dist = Math.sqrt(Math.pow(t.x - f.x, 2) + Math.pow(t.y - f.y, 2));
+      if (dist < 100 && dist > 1) {
+        t.color = '#0f0';
+        t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+        if (Number.isNaN(t.d)) t.d = 0;
+      } else if (dist <= 1) {
+        return true;
+      } else {
+        t.color = '#000';
+      }
+      return false;
+    });
     t.x += Math.sin(t.d);
     t.y -= Math.cos(t.d);
+  } else {
+    if (t.eating) t.energy++;
+    if (t.energy > 5) {
+      t.color = '#9f5';
+      t.eating = false;
+      var dist = Math.sqrt(Math.pow(t.x - t.hiveX, 2) + Math.pow(t.y - t.hiveY, 2));
+      if (dist <= 1) {
+        t.energy = 0;
+        t.d = t.d + Math.PI;
+      } else {
+        t.d = Math.atan2((t.hiveX - t.x), (t.y - t.hiveY));
+        t.x += Math.sin(t.d);
+        t.y -= Math.cos(t.d);
+      }
+    }
   }
 
   Entity.prototype.update.call(t, counter);
@@ -135,11 +157,9 @@ Creep.prototype.update = function(counter) {
 
 function Food(game, x, y) {
   var t = this;
+  Entity.prototype.constructor.call(t, game, x, y);
   t.type = 'Food';
   t.color = '#ff0';
-  t.game = game;
-  t.x = x;
-  t.y = y;
 }
 Food.prototype = new Entity;
 Food.prototype.constructor = Food;
@@ -185,7 +205,6 @@ Game.prototype = {
     };
 
     updatables.forEach(function(name) {
-      log('name', name, t[name].length);
       for (var i = 0; i < t[name].length; i++) {
         t[name][i].update(t.counter);
       }
@@ -291,7 +310,7 @@ Game.prototype = {
 typeof module !== 'undefined' && (module.exports = Game);
 
 
-var s = 1;
+var s = 4;
 
 function r(max) {
   var max = max ? max : 1;

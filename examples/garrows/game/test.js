@@ -62,110 +62,76 @@ describe("GarrowsGame", function() {
     });
   });
 
-  describe("random stuff", function() {
-    it("should be 90deg when going nowhere", function() {
-      var f = {
-        x: 10,
-        y: 10
-      };
-      var t = {
-        x: 10,
-        y: 10
-      };
-
-      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
-      if (Number.isNaN(t.d)) t.d = 0;
-      t.d.should.eql(0);
+  describe("creeps", function() {
+    it("should be eating when on top of food", function() {
+      var game = new Game(40);
+      game.food.push(new Food(game, 10, 10));
+      game.creeps.push(new Creep(game, 10, 10));
+      game.update();
+      game.creeps[0].eating.should.eql(true);
+      // game.creeps[0].d.should.eql(0);
+    });
+    it("should be eating when next to food", function() {
+      var game = new Game(40);
+      game.food.push(new Food(game, 11, 10));
+      game.creeps.push(new Creep(game, 10, 10));
+      game.update();
+      game.creeps[0].eating.should.eql(true);
+      // game.creeps[0].d.should.eql(0);
     });
 
     it("should be straight up", function() {
-      var f = {
-        x: 10,
-        y: 0
-      };
-      var t = {
-        x: 10,
-        y: 10
-      };
-
-      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
-      if (Number.isNaN(t.d)) t.d = 0;
-      t.d.should.eql(0);
+      var game = new Game(40);
+      game.food.push(new Food(game, 10, 0));
+      game.creeps.push(new Creep(game, 10, 10));
+      game.update();
+      game.creeps[0].eating.should.eql(false);
+      game.creeps[0].d.should.eql(0);
     });
 
     it("should be 45deg", function() {
-      var f = {
-        x: 15,
-        y: 5
-      };
-      var t = {
-        x: 10,
-        y: 10
-      };
-
-      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
-      if (Number.isNaN(t.d)) t.d = 0;
-      t.d.should.eql(45 * Math.PI / 180);
+      var game = new Game(40);
+      game.food.push(new Food(game, 15, 5));
+      game.creeps.push(new Creep(game, 10, 10));
+      game.update();
+      game.creeps[0].eating.should.eql(false);
+      game.creeps[0].d.should.eql(45 * Math.PI / 180);
     });
 
     it("should be 90deg", function() {
-      var f = {
-        x: 20,
-        y: 10
-      };
-      var t = {
-        x: 10,
-        y: 10
-      };
-
-      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
-      if (Number.isNaN(t.d)) t.d = 0;
-      t.d.should.eql(90 * Math.PI / 180);
+      var game = new Game(40);
+      game.food.push(new Food(game, 20, 10));
+      game.creeps.push(new Creep(game, 10, 10));
+      game.update();
+      game.creeps[0].eating.should.eql(false);
+      game.creeps[0].d.should.eql(90 * Math.PI / 180);
     });
 
     it("should be 180deg", function() {
-      var f = {
-        x: 10,
-        y: 20
-      };
-      var t = {
-        x: 10,
-        y: 10
-      };
-
-      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
-      if (Number.isNaN(t.d)) t.d = 0;
-      t.d.should.eql(180 * Math.PI / 180);
+      var game = new Game(40);
+      game.food.push(new Food(game, 10, 20));
+      game.creeps.push(new Creep(game, 10, 10));
+      game.update();
+      game.creeps[0].eating.should.eql(false);
+      game.creeps[0].d.should.eql(180 * Math.PI / 180);
     });
 
     it("should be 270deg", function() {
-      var f = {
-        x: 0,
-        y: 10
-      };
-      var t = {
-        x: 10,
-        y: 10
-      };
-
-      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
-      if (Number.isNaN(t.d)) t.d = 0;
-      t.d.should.eql(-90 * Math.PI / 180);
+      var game = new Game(40);
+      game.food.push(new Food(game, 0, 10));
+      game.creeps.push(new Creep(game, 10, 10));
+      game.update();
+      game.creeps[0].eating.should.eql(false);
+      game.creeps[0].d.should.eql(-90 * Math.PI / 180);
     });
 
-    it("should be straight 315deg", function() {
-      var f = {
-        x: 0,
-        y: 0
-      };
-      var t = {
-        x: 10,
-        y: 10
-      };
-
-      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
-      if (Number.isNaN(t.d)) t.d = 0;
-      t.d.should.eql(-45 * Math.PI / 180);
+    it("should be 315deg", function() {
+      var game = new Game(40);
+      game.food.push(new Food(game, 0, 0));
+      game.creeps.push(new Creep(game, 10, 10));
+      game.update();
+      game.creeps[0].eating.should.eql(false);
+      game.creeps[0].d.should.eql(-45 * Math.PI / 180);
     });
 
   });

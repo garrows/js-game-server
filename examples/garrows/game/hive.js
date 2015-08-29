@@ -1,11 +1,10 @@
 function Hive(game, x, y) {
   var t = this;
+  Entity.prototype.constructor.call(t, game, x, y);
   t.type = 'Hive';
   t.color = '#00e';
-  t.game = game;
-  t.x = x;
-  t.y = y;
   t.creepCount = 0;
+  t.props.push('creepCount');
 }
 Hive.prototype = new Entity;
 Hive.prototype.constructor = Hive;
