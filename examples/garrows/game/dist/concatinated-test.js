@@ -81,7 +81,7 @@ function Creep(game, x, y) {
   t.game = game;
   t.x = x;
   t.y = y;
-  t.d = r(2*Math.PI);
+  t.d = r(2 * Math.PI);
 }
 Creep.prototype = new Entity;
 Creep.prototype.constructor = Creep;
@@ -92,14 +92,22 @@ Creep.prototype.drawDetails = function(ts, x, y, w) {
 }
 Creep.prototype.update = function(counter) {
   var t = this;
-  t.game.food.forEach(function(f) {
+  var found = t.game.food.some(function(f) {
     var d = Math.sqrt(Math.pow(t.x - f.x, 2) + Math.pow(t.y - f.y, 2));
-    if (d < 50) {
+    if (d < 80 && d > 1) {
       t.color = '#0f0';
+      //soh cah toa
+      // t.d = Math.atan(f.y - t.y / f.x - t.x);
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+    } else if (d <= 1) {
+      return true;
     }
+    return false;
   });
-  t.x += Math.sin(t.d);
-  t.y += Math.cos(t.d);
+  if (!found) {
+    t.x += Math.sin(t.d);
+    t.y -= Math.cos(t.d);
+  }
 
   Entity.prototype.update.call(t, counter);
 
@@ -298,10 +306,9 @@ describe("GarrowsGame", function() {
       game.serverUpdated({
         counter: 2,
         players: [{
-          id: 1,
-          name: 'Testing Player',
-          x: GAME_WIDTH/16,
-          y: GAME_WIDTH/16
+          type: 'Entity',
+          x: GAME_WIDTH / 16,
+          y: GAME_WIDTH / 16
         }]
       });
       game.counter.should.eql(2);
@@ -312,7 +319,7 @@ describe("GarrowsGame", function() {
     it("should genrate level with creeps, hives & food", function() {
       var COUNT = 10;
       game.generateServerState(COUNT);
-      game.food.length.should.eql(COUNT);
+      game.food.length.should.eql(COUNT * 3);
       game.hives.length.should.eql(COUNT);
       game.creeps.length.should.eql(0);
     });
@@ -330,10 +337,118 @@ describe("GarrowsGame", function() {
     it("should draw zoomed level", function() {
       var canvas = document.getElementById('canvasZoomed');
       c = canvas.getContext('2d');
-      game.cam.z = 1/8;
-      game.cam.x += game.mapWidth/32;
+      game.cam.z = 1 / 8;
+      game.cam.x += game.mapWidth / 32;
       game.draw();
     });
+  });
+
+  describe("random stuff", function() {
+    it("should be 90deg when going nowhere", function() {
+      var f = {
+        x: 10,
+        y: 10
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(0);
+    });
+
+    it("should be straight up", function() {
+      var f = {
+        x: 10,
+        y: 0
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(0);
+    });
+
+    it("should be 45deg", function() {
+      var f = {
+        x: 15,
+        y: 5
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(45 * Math.PI / 180);
+    });
+
+    it("should be 90deg", function() {
+      var f = {
+        x: 20,
+        y: 10
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(90 * Math.PI / 180);
+    });
+
+    it("should be 180deg", function() {
+      var f = {
+        x: 10,
+        y: 20
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(180 * Math.PI / 180);
+    });
+
+    it("should be 270deg", function() {
+      var f = {
+        x: 0,
+        y: 10
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(-90 * Math.PI / 180);
+    });
+
+    it("should be straight 315deg", function() {
+      var f = {
+        x: 0,
+        y: 0
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(-45 * Math.PI / 180);
+    });
+
   });
 
   // describe("map", function() {

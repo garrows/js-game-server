@@ -25,10 +25,9 @@ describe("GarrowsGame", function() {
       game.serverUpdated({
         counter: 2,
         players: [{
-          id: 1,
-          name: 'Testing Player',
-          x: GAME_WIDTH/16,
-          y: GAME_WIDTH/16
+          type: 'Entity',
+          x: GAME_WIDTH / 16,
+          y: GAME_WIDTH / 16
         }]
       });
       game.counter.should.eql(2);
@@ -39,7 +38,7 @@ describe("GarrowsGame", function() {
     it("should genrate level with creeps, hives & food", function() {
       var COUNT = 10;
       game.generateServerState(COUNT);
-      game.food.length.should.eql(COUNT);
+      game.food.length.should.eql(COUNT * 3);
       game.hives.length.should.eql(COUNT);
       game.creeps.length.should.eql(0);
     });
@@ -57,10 +56,118 @@ describe("GarrowsGame", function() {
     it("should draw zoomed level", function() {
       var canvas = document.getElementById('canvasZoomed');
       c = canvas.getContext('2d');
-      game.cam.z = 1/8;
-      game.cam.x += game.mapWidth/32;
+      game.cam.z = 1 / 8;
+      game.cam.x += game.mapWidth / 32;
       game.draw();
     });
+  });
+
+  describe("random stuff", function() {
+    it("should be 90deg when going nowhere", function() {
+      var f = {
+        x: 10,
+        y: 10
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(0);
+    });
+
+    it("should be straight up", function() {
+      var f = {
+        x: 10,
+        y: 0
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(0);
+    });
+
+    it("should be 45deg", function() {
+      var f = {
+        x: 15,
+        y: 5
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(45 * Math.PI / 180);
+    });
+
+    it("should be 90deg", function() {
+      var f = {
+        x: 20,
+        y: 10
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(90 * Math.PI / 180);
+    });
+
+    it("should be 180deg", function() {
+      var f = {
+        x: 10,
+        y: 20
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(180 * Math.PI / 180);
+    });
+
+    it("should be 270deg", function() {
+      var f = {
+        x: 0,
+        y: 10
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(-90 * Math.PI / 180);
+    });
+
+    it("should be straight 315deg", function() {
+      var f = {
+        x: 0,
+        y: 0
+      };
+      var t = {
+        x: 10,
+        y: 10
+      };
+
+      t.d = Math.atan2((f.x - t.x), (t.y - f.y));
+      if (Number.isNaN(t.d)) t.d = 0;
+      t.d.should.eql(-45 * Math.PI / 180);
+    });
+
   });
 
   // describe("map", function() {
