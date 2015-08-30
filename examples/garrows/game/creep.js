@@ -15,12 +15,12 @@ Creep.prototype.constructor = Creep;
 Creep.prototype.drawDetails = function(ts, x, y, w) {
   var t = this;
   c.strokeWidth = 4;
-
+  console.log('draw');
   Entity.prototype.drawDetails.call(t, ts, x, y, w);
-  // c.beginPath();
-  // c.moveTo(x, y);
-  // c.arc(x, y, 100, t.d - Math.PI / 2, t.d - Math.PI / 2 + 2 * Math.PI);
-  // c.stroke();
+  c.beginPath();
+  c.moveTo(x, y);
+  c.arc(x, y, 100, t.d - Math.PI / 2, t.d - Math.PI / 2 + 2 * Math.PI);
+  c.stroke();
 }
 Creep.prototype.update = function(counter) {
   var t = this;

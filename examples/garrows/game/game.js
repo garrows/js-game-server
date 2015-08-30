@@ -5,6 +5,7 @@ function Game(mapWidth) {
   t.food = [];
   t.hives = [];
   t.creeps = [];
+  t.entityNames = ['players', 'hives', 'creeps', 'food'];
   t.mapWidth = mapWidth;
   t.cam = {
     x: 0,
@@ -33,12 +34,12 @@ Game.prototype = {
   update: function(io) {
     var t = this;
     t.counter++;
-    var updatables = ['players', 'hives', 'creeps', 'food'];
+
     var state = {
       counter: t.counter
     };
 
-    updatables.forEach(function(name) {
+    t.entityNames.forEach(function(name) {
       for (var i = 0; i < t[name].length; i++) {
         t[name][i].update(t.counter);
       }
@@ -92,25 +93,27 @@ Game.prototype = {
 
   },
   draw: function(ts) {
-    this.cam.x = this.cam.x > 0 ? this.cam.x : 0;
-    this.cam.y = this.cam.y > 0 ? this.cam.y : 0;
-    this.cam.z = this.cam.z > 1 ? 1 : this.cam.z;
-    this.cam.z = this.cam.z < .1 ? .1 : this.cam.z;
+    var t = this;
+
+    t.cam.x = t.cam.x > 0 ? t.cam.x : 0;
+    t.cam.y = t.cam.y > 0 ? t.cam.y : 0;
+    t.cam.z = t.cam.z > 1 ? 1 : t.cam.z;
+    t.cam.z = t.cam.z < .1 ? .1 : t.cam.z;
     var dw = canvas.width,
       dh = canvas.height,
-      sx = this.cam.x,
-      sy = this.cam.y,
-      sw = lCan.width * this.cam.z,
-      sh = lCan.height * this.cam.z;
+      sx = t.cam.x,
+      sy = t.cam.y,
+      sw = lCan.width * t.cam.z,
+      sh = lCan.height * t.cam.z;
     if (sx + sw > lCan.width) {
       log('too right')
-      this.cam.x -= sx + sw - lCan.width;
-      return this.draw(ts);
+      t.cam.x -= sx + sw - lCan.width;
+      return t.draw(ts);
     }
     if (sy + sh > lCan.height) {
       log('too low')
-      this.cam.y -= sy + sh - lCan.height;
-      return this.draw(ts);
+      t.cam.y -= sy + sh - lCan.height;
+      return t.draw(ts);
     }
 
 
@@ -121,19 +124,11 @@ Game.prototype = {
     //Draw level
     c.drawImage(lCan, sx, sy, sw, sh, 0, 0, dw, dh);
 
-    var w = dw / (lCan.width * this.cam.z);
-    for (var i = 0; i < this.players.length; i++) {
-      this.players[i].draw(ts);
-    }
-    for (var i = 0; i < this.hives.length; i++) {
-      this.hives[i].draw(ts);
-    }
-    for (var i = 0; i < this.food.length; i++) {
-      this.food[i].draw(ts);
-    }
-    for (var i = 0; i < this.creeps.length; i++) {
-      this.creeps[i].draw(ts);
-    }
+    t.entityNames.forEach(function(name) {
+      for (var i = 0; i < t[name].length; i++) {
+        t[name][i].draw(ts);
+      }
+    });
   },
   drawLoop: function(dt) {
     this.draw(dt);

@@ -31,14 +31,15 @@ Entity.prototype = {
     var x = t.x * w - (t.game.cam.x * w),
       y = t.y * w - (t.game.cam.y * w);
 
-    t.drawDetails(ts, x, y, w);
+    t.drawDetails(ts, x - w / 2, y - w / 2, w);
   },
   drawDetails: function(ts, x, y, w) {
     c.fillRect(x, y, w, w);
     c.strokeRect(x - c.strokeWidth / 2, y - c.strokeWidth / 2, w + c.strokeWidth, w + c.strokeWidth);
   },
   toJSON: function() {
-    var t = this, r = {};
+    var t = this,
+      r = {};
     t.props.forEach(function(p) {
       r[p] = t[p];
     });
@@ -66,7 +67,7 @@ Hive.prototype.update = function(counter) {
   var t = this;
   if (t.creepCount < 1) {
     t.creepCount++;
-    var creep = new Creep(game, t.x, t.y);
+    var creep = new Creep(t.game, t.x, t.y);
     t.game.creeps.push(creep);
   }
   Entity.prototype.update.call(t, counter);
@@ -89,12 +90,12 @@ Creep.prototype.constructor = Creep;
 Creep.prototype.drawDetails = function(ts, x, y, w) {
   var t = this;
   c.strokeWidth = 4;
-
+  console.log('draw');
   Entity.prototype.drawDetails.call(t, ts, x, y, w);
-  // c.beginPath();
-  // c.moveTo(x, y);
-  // c.arc(x, y, 100, t.d - Math.PI / 2, t.d - Math.PI / 2 + 2 * Math.PI);
-  // c.stroke();
+  c.beginPath();
+  c.moveTo(x, y);
+  c.arc(x, y, 100, t.d - Math.PI / 2, t.d - Math.PI / 2 + 2 * Math.PI);
+  c.stroke();
 }
 Creep.prototype.update = function(counter) {
   var t = this;
@@ -151,6 +152,7 @@ function Game(mapWidth) {
   t.food = [];
   t.hives = [];
   t.creeps = [];
+  t.entityNames = ['players', 'hives', 'creeps', 'food'];
   t.mapWidth = mapWidth;
   t.cam = {
     x: 0,
@@ -179,12 +181,12 @@ Game.prototype = {
   update: function(io) {
     var t = this;
     t.counter++;
-    var updatables = ['players', 'hives', 'creeps', 'food'];
+
     var state = {
       counter: t.counter
     };
 
-    updatables.forEach(function(name) {
+    t.entityNames.forEach(function(name) {
       for (var i = 0; i < t[name].length; i++) {
         t[name][i].update(t.counter);
       }
@@ -238,25 +240,27 @@ Game.prototype = {
 
   },
   draw: function(ts) {
-    this.cam.x = this.cam.x > 0 ? this.cam.x : 0;
-    this.cam.y = this.cam.y > 0 ? this.cam.y : 0;
-    this.cam.z = this.cam.z > 1 ? 1 : this.cam.z;
-    this.cam.z = this.cam.z < .1 ? .1 : this.cam.z;
+    var t = this;
+
+    t.cam.x = t.cam.x > 0 ? t.cam.x : 0;
+    t.cam.y = t.cam.y > 0 ? t.cam.y : 0;
+    t.cam.z = t.cam.z > 1 ? 1 : t.cam.z;
+    t.cam.z = t.cam.z < .1 ? .1 : t.cam.z;
     var dw = canvas.width,
       dh = canvas.height,
-      sx = this.cam.x,
-      sy = this.cam.y,
-      sw = lCan.width * this.cam.z,
-      sh = lCan.height * this.cam.z;
+      sx = t.cam.x,
+      sy = t.cam.y,
+      sw = lCan.width * t.cam.z,
+      sh = lCan.height * t.cam.z;
     if (sx + sw > lCan.width) {
       log('too right')
-      this.cam.x -= sx + sw - lCan.width;
-      return this.draw(ts);
+      t.cam.x -= sx + sw - lCan.width;
+      return t.draw(ts);
     }
     if (sy + sh > lCan.height) {
       log('too low')
-      this.cam.y -= sy + sh - lCan.height;
-      return this.draw(ts);
+      t.cam.y -= sy + sh - lCan.height;
+      return t.draw(ts);
     }
 
 
@@ -267,19 +271,11 @@ Game.prototype = {
     //Draw level
     c.drawImage(lCan, sx, sy, sw, sh, 0, 0, dw, dh);
 
-    var w = dw / (lCan.width * this.cam.z);
-    for (var i = 0; i < this.players.length; i++) {
-      this.players[i].draw(ts);
-    }
-    for (var i = 0; i < this.hives.length; i++) {
-      this.hives[i].draw(ts);
-    }
-    for (var i = 0; i < this.food.length; i++) {
-      this.food[i].draw(ts);
-    }
-    for (var i = 0; i < this.creeps.length; i++) {
-      this.creeps[i].draw(ts);
-    }
+    t.entityNames.forEach(function(name) {
+      for (var i = 0; i < t[name].length; i++) {
+        t[name][i].draw(ts);
+      }
+    });
   },
   drawLoop: function(dt) {
     this.draw(dt);
@@ -347,7 +343,7 @@ describe("GarrowsGame", function() {
   describe("when drawing", function() {
     it("should genrate level and draw it", function() {
       game.generateLevel();
-      game.cam.z = 1; //Magic full zoom number
+      game.cam.z = 1;
       game.draw();
       var debugLevelCanvas = document.getElementById('levelCanvas');
       var debugLevelCtx = debugLevelCanvas.getContext('2d');
@@ -358,114 +354,106 @@ describe("GarrowsGame", function() {
       c = canvas.getContext('2d');
       game.cam.z = 1 / 8;
       game.cam.x += game.mapWidth / 32;
+      game.cam.y += game.mapWidth / 32;
       game.draw();
     });
   });
 
   describe("creeps", function() {
-    it("should be eating when on top of food", function() {
-      var game = new Game(40);
-      game.food.push(new Food(game, 10, 10));
-      game.creeps.push(new Creep(game, 10, 10));
-      game.update();
-      game.creeps[0].eating.should.eql(true);
-      // game.creeps[0].d.should.eql(0);
-    });
-    it("should be eating when next to food", function() {
-      var game = new Game(40);
-      game.food.push(new Food(game, 11, 10));
-      game.creeps.push(new Creep(game, 10, 10));
-      game.update();
-      game.creeps[0].eating.should.eql(true);
-      // game.creeps[0].d.should.eql(0);
+
+    describe("directions", function() {
+      it("should be eating when on top of food", function() {
+        var game = new Game(40);
+        game.food.push(new Food(game, 10, 10));
+        game.creeps.push(new Creep(game, 10, 10));
+        game.update();
+        game.creeps[0].eating.should.eql(true);
+        // game.creeps[0].d.should.eql(0);
+      });
+      it("should be eating when next to food", function() {
+        var game = new Game(40);
+        game.food.push(new Food(game, 11, 10));
+        game.creeps.push(new Creep(game, 10, 10));
+        game.update();
+        game.creeps[0].eating.should.eql(true);
+        // game.creeps[0].d.should.eql(0);
+      });
+
+      it("should be straight up", function() {
+        var game = new Game(40);
+        game.food.push(new Food(game, 10, 0));
+        game.creeps.push(new Creep(game, 10, 10));
+        game.update();
+        game.creeps[0].eating.should.eql(false);
+        game.creeps[0].d.should.eql(0);
+      });
+
+      it("should be 45deg", function() {
+        var game = new Game(40);
+        game.food.push(new Food(game, 15, 5));
+        game.creeps.push(new Creep(game, 10, 10));
+        game.update();
+        game.creeps[0].eating.should.eql(false);
+        game.creeps[0].d.should.eql(45 * Math.PI / 180);
+      });
+
+      it("should be 90deg", function() {
+        var game = new Game(40);
+        game.food.push(new Food(game, 20, 10));
+        game.creeps.push(new Creep(game, 10, 10));
+        game.update();
+        game.creeps[0].eating.should.eql(false);
+        game.creeps[0].d.should.eql(90 * Math.PI / 180);
+      });
+
+      it("should be 180deg", function() {
+        var game = new Game(40);
+        game.food.push(new Food(game, 10, 20));
+        game.creeps.push(new Creep(game, 10, 10));
+        game.update();
+        game.creeps[0].eating.should.eql(false);
+        game.creeps[0].d.should.eql(180 * Math.PI / 180);
+      });
+
+      it("should be 270deg", function() {
+        var game = new Game(40);
+        game.food.push(new Food(game, 0, 10));
+        game.creeps.push(new Creep(game, 10, 10));
+        game.update();
+        game.creeps[0].eating.should.eql(false);
+        game.creeps[0].d.should.eql(-90 * Math.PI / 180);
+      });
+
+      it("should be 315deg", function() {
+        var game = new Game(40);
+        game.food.push(new Food(game, 0, 0));
+        game.creeps.push(new Creep(game, 10, 10));
+        game.update();
+        game.creeps[0].eating.should.eql(false);
+        game.creeps[0].d.should.eql(-45 * Math.PI / 180);
+      });
     });
 
-    it("should be straight up", function() {
-      var game = new Game(40);
-      game.food.push(new Food(game, 10, 0));
-      game.creeps.push(new Creep(game, 10, 10));
-      game.update();
-      game.creeps[0].eating.should.eql(false);
-      game.creeps[0].d.should.eql(0);
-    });
-
-    it("should be 45deg", function() {
-      var game = new Game(40);
-      game.food.push(new Food(game, 15, 5));
-      game.creeps.push(new Creep(game, 10, 10));
-      game.update();
-      game.creeps[0].eating.should.eql(false);
-      game.creeps[0].d.should.eql(45 * Math.PI / 180);
-    });
-
-    it("should be 90deg", function() {
-      var game = new Game(40);
-      game.food.push(new Food(game, 20, 10));
-      game.creeps.push(new Creep(game, 10, 10));
-      game.update();
-      game.creeps[0].eating.should.eql(false);
-      game.creeps[0].d.should.eql(90 * Math.PI / 180);
-    });
-
-    it("should be 180deg", function() {
-      var game = new Game(40);
-      game.food.push(new Food(game, 10, 20));
-      game.creeps.push(new Creep(game, 10, 10));
-      game.update();
-      game.creeps[0].eating.should.eql(false);
-      game.creeps[0].d.should.eql(180 * Math.PI / 180);
-    });
-
-    it("should be 270deg", function() {
-      var game = new Game(40);
-      game.food.push(new Food(game, 0, 10));
-      game.creeps.push(new Creep(game, 10, 10));
-      game.update();
-      game.creeps[0].eating.should.eql(false);
-      game.creeps[0].d.should.eql(-90 * Math.PI / 180);
-    });
-
-    it("should be 315deg", function() {
-      var game = new Game(40);
-      game.food.push(new Food(game, 0, 0));
-      game.creeps.push(new Creep(game, 10, 10));
-      game.update();
-      game.creeps[0].eating.should.eql(false);
-      game.creeps[0].d.should.eql(-45 * Math.PI / 180);
+    describe("pathfinding", function() {
+      it("should not collide with towers", function() {
+        canvas = document.getElementById('towersCanvas');
+        c = canvas.getContext('2d');
+        var game = new Game(20);
+        window.g = game;
+        game.generateLevel();
+        game.food.push(new Food(game, 10, 10));
+        game.hives.push(new Hive(game, 15, 10));
+        game.cam.z = 1;
+        game.update();
+        game.draw();
+        game.creeps.length.should.eql(1);
+        game.creeps[0].eating.should.eql(false);
+        // game.creeps[0].d.should.eql(0);
+      });
     });
 
   });
 
-  // describe("map", function() {
-  //   it("should fill map array", function() {
-  //     var game = new Game(GAME_WIDTH);
-  //     var i = 0;
-  //     for (var y = 0; y < game.map.width; y++) {
-  //       for (var x = 0; x < game.map.width; x++) {
-  //         game.map.set(x, y, i);
-  //         i++;
-  //       }
-  //     }
-  //     for (var i = 0; i < game.map.width * game.map.width; i++) {
-  //       game.map.d[i].should.eql(i);
-  //     }
-  //     game.map.get(0, 0).should.eql(0);
-  //     game.map.get(1, 0).should.eql(1);
-  //     game.map.get(0, 1).should.eql(10);
-  //     (function() {
-  //       game.map.get(10, 0);
-  //     }).should.throwError();
-  //     (function() {
-  //       game.map.get(0, 10);
-  //     }).should.throwError();
-  //     (function() {
-  //       game.map.get(-1, 0);
-  //     }).should.throwError();
-  //     (function() {
-  //       game.map.get(0, -1);
-  //     }).should.throwError();
-  //   });
-  // });
 
 });
 

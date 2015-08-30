@@ -17,7 +17,7 @@ Hive.prototype.update = function(counter) {
   var t = this;
   if (t.creepCount < 1) {
     t.creepCount++;
-    var creep = new Creep(game, t.x, t.y);
+    var creep = new Creep(t.game, t.x, t.y);
     t.game.creeps.push(creep);
   }
   Entity.prototype.update.call(t, counter);
