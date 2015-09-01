@@ -8,14 +8,14 @@ function Creep(game, x, y) {
   t.eating = false;
   t.energy = 0;
   t.d = r(2 * Math.PI);
-  t.props.push('hiveX', 'hiveY', 'eating', 'energy', 'd');
+  t.collisionFreq = 0;
+  t.props.push('hiveX', 'hiveY', 'eating', 'energy', 'd', 'collisionFreq');
 }
 Creep.prototype = new Entity;
 Creep.prototype.constructor = Creep;
 Creep.prototype.drawDetails = function(ts, x, y, w) {
   var t = this;
   c.strokeWidth = 4;
-  console.log('draw');
   Entity.prototype.drawDetails.call(t, ts, x, y, w);
   c.beginPath();
   c.moveTo(x, y);
@@ -24,7 +24,10 @@ Creep.prototype.drawDetails = function(ts, x, y, w) {
 }
 Creep.prototype.update = function(counter) {
   var t = this;
-  if (!t.eating && t.energy < 5) {
+  if (t.findNewPath-- > 0) {
+    t.x += Math.sin(t.d);
+    t.y -= Math.cos(t.d);
+  } else if (!t.eating && t.energy < 5) {
     t.eating = t.game.food.some(function(f) {
       var dist = Math.sqrt(Math.pow(t.x - f.x, 2) + Math.pow(t.y - f.y, 2));
       if (dist < 100 && dist > 1) {
@@ -57,6 +60,31 @@ Creep.prototype.update = function(counter) {
     }
   }
 
+  t.checkCollisions(counter);
+
   Entity.prototype.update.call(t, counter);
 
+}
+
+Creep.prototype.checkCollisions = function(counter) {
+  var t = this;
+  var collides = t.game.blocks.some(function(f) {
+    var dist = Math.sqrt(Math.pow(t.x - f.x, 2) + Math.pow(t.y - f.y, 2));
+    if (dist < 1) {
+      return true;
+    }
+    return false;
+  });
+  if (collides) {
+    //Undo last move
+    t.x += Math.sin(t.d + Math.PI);
+    t.y -= Math.cos(t.d + Math.PI);
+    t.d = r(Math.PI * 2);
+    t.collisionFreq += 1;
+    console.log('collided', t.collisionFreq);
+    t.findNewPath = t.collisionFreq;
+    this.update();
+  } else {
+    t.collisionFreq = t.collisionFreq > 0.1 ? t.collisionFreq - 0.1 : 0;
+  }
 }

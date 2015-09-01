@@ -139,20 +139,87 @@ describe("GarrowsGame", function() {
     });
 
     describe("pathfinding", function() {
-      it("should not collide with towers", function() {
+
+      var LOOP_TIME = 50;
+      var game;
+
+      before(function(_done) {
         canvas = document.getElementById('towersCanvas');
         c = canvas.getContext('2d');
-        var game = new Game(20);
-        window.g = game;
+        game = new Game(20);
         game.generateLevel();
-        game.food.push(new Food(game, 10, 10));
+        game.food.push(new Food(game, 5, 10));
         game.hives.push(new Hive(game, 15, 10));
+        game.blocks.push(new Block(game, 10, 10));
         game.cam.z = 1;
-        game.update();
-        game.draw();
-        game.creeps.length.should.eql(1);
-        game.creeps[0].eating.should.eql(false);
-        // game.creeps[0].d.should.eql(0);
+        return _done();
+      });
+
+      it("should not collide with towers", function(done) {
+        game.creeps.length.should.eql(0);
+        var i = 0;
+        var loop = function() {
+          i++;
+          game.update();
+          game.draw();
+          game.creeps.length.should.eql(1);
+          if (i === 5) {
+            game.creeps[0].y.should.not.eql(10);
+            game.creeps[0].eating.should.eql(false);
+            game.creeps[0].energy.should.eql(0);
+            return done();
+          } else {
+            game.creeps[0].y.should.eql(10);
+          }
+          setTimeout(loop, LOOP_TIME);
+        };
+        setTimeout(loop, 0);
+      });
+
+      it("should find food within 10ish updates", function(done) {
+        var i = 0;
+        var loop = function() {
+          i++;
+          game.update();
+          game.draw();
+          if (game.creeps[0].eating) {
+            return done();
+          }
+          i.should.be.lessThan(20);
+          setTimeout(loop, LOOP_TIME);
+        };
+        setTimeout(loop, 0);
+      });
+
+      it("should its way home through complex route", function(done) {
+        var i = 0;
+        for (var x = 0; x < 20; x++) {
+          game.blocks.push(new Block(game, 0.5, x));
+          game.blocks.push(new Block(game, 19.5, x));
+          game.blocks.push(new Block(game, x, 0.5));
+          game.blocks.push(new Block(game, x, 19.5));
+        }
+        game.blocks.push(new Block(game, 6, 7));
+        game.blocks.push(new Block(game, 7, 7));
+        game.blocks.push(new Block(game, 8, 7));
+        game.blocks.push(new Block(game, 9, 7));
+        game.blocks.push(new Block(game, 10, 7));
+        game.blocks.push(new Block(game, 10, 8));
+        game.blocks.push(new Block(game, 10, 9));
+        game.blocks.push(new Block(game, 10, 11));
+        game.blocks.push(new Block(game, 10, 12));
+        game.blocks.push(new Block(game, 10, 13));
+        var loop = function() {
+          i++;
+          game.update();
+          game.draw();
+          if (game.creeps[0].energy == 0) {
+            return done();
+          }
+          i.should.be.lessThan(200);
+          setTimeout(loop, LOOP_TIME);
+        };
+        setTimeout(loop, 0);
       });
     });
 

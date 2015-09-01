@@ -31,9 +31,11 @@ Entity.prototype = {
     var x = t.x * w - (t.game.cam.x * w),
       y = t.y * w - (t.game.cam.y * w);
 
-    t.drawDetails(ts, x - w / 2, y - w / 2, w);
+    t.drawDetails(ts, x, y, w);
   },
   drawDetails: function(ts, x, y, w) {
+    x -= w / 2;
+    y -= w / 2;
     c.fillRect(x, y, w, w);
     c.strokeRect(x - c.strokeWidth / 2, y - c.strokeWidth / 2, w + c.strokeWidth, w + c.strokeWidth);
   },

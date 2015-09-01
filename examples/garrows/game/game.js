@@ -5,7 +5,8 @@ function Game(mapWidth) {
   t.food = [];
   t.hives = [];
   t.creeps = [];
-  t.entityNames = ['players', 'hives', 'creeps', 'food'];
+  t.blocks = [];
+  t.entityNames = ['players', 'hives', 'creeps', 'food', 'blocks'];
   t.mapWidth = mapWidth;
   t.cam = {
     x: 0,

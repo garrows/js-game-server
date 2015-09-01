@@ -31,9 +31,11 @@ Entity.prototype = {
     var x = t.x * w - (t.game.cam.x * w),
       y = t.y * w - (t.game.cam.y * w);
 
-    t.drawDetails(ts, x - w / 2, y - w / 2, w);
+    t.drawDetails(ts, x, y, w);
   },
   drawDetails: function(ts, x, y, w) {
+    x -= w / 2;
+    y -= w / 2;
     c.fillRect(x, y, w, w);
     c.strokeRect(x - c.strokeWidth / 2, y - c.strokeWidth / 2, w + c.strokeWidth, w + c.strokeWidth);
   },
@@ -83,14 +85,14 @@ function Creep(game, x, y) {
   t.eating = false;
   t.energy = 0;
   t.d = r(2 * Math.PI);
-  t.props.push('hiveX', 'hiveY', 'eating', 'energy', 'd');
+  t.collisionFreq = 0;
+  t.props.push('hiveX', 'hiveY', 'eating', 'energy', 'd', 'collisionFreq');
 }
 Creep.prototype = new Entity;
 Creep.prototype.constructor = Creep;
 Creep.prototype.drawDetails = function(ts, x, y, w) {
   var t = this;
   c.strokeWidth = 4;
-  console.log('draw');
   Entity.prototype.drawDetails.call(t, ts, x, y, w);
   c.beginPath();
   c.moveTo(x, y);
@@ -99,7 +101,10 @@ Creep.prototype.drawDetails = function(ts, x, y, w) {
 }
 Creep.prototype.update = function(counter) {
   var t = this;
-  if (!t.eating && t.energy < 5) {
+  if (t.findNewPath-- > 0) {
+    t.x += Math.sin(t.d);
+    t.y -= Math.cos(t.d);
+  } else if (!t.eating && t.energy < 5) {
     t.eating = t.game.food.some(function(f) {
       var dist = Math.sqrt(Math.pow(t.x - f.x, 2) + Math.pow(t.y - f.y, 2));
       if (dist < 100 && dist > 1) {
@@ -132,8 +137,33 @@ Creep.prototype.update = function(counter) {
     }
   }
 
+  t.checkCollisions(counter);
+
   Entity.prototype.update.call(t, counter);
 
+}
+
+Creep.prototype.checkCollisions = function(counter) {
+  var t = this;
+  var collides = t.game.blocks.some(function(f) {
+    var dist = Math.sqrt(Math.pow(t.x - f.x, 2) + Math.pow(t.y - f.y, 2));
+    if (dist < 1) {
+      return true;
+    }
+    return false;
+  });
+  if (collides) {
+    //Undo last move
+    t.x += Math.sin(t.d + Math.PI);
+    t.y -= Math.cos(t.d + Math.PI);
+    t.d = r(Math.PI * 2);
+    t.collisionFreq += 1;
+    console.log('collided', t.collisionFreq);
+    t.findNewPath = t.collisionFreq;
+    this.update();
+  } else {
+    t.collisionFreq = t.collisionFreq > 0.1 ? t.collisionFreq - 0.1 : 0;
+  }
 }
 
 function Food(game, x, y) {
@@ -145,6 +175,16 @@ function Food(game, x, y) {
 Food.prototype = new Entity;
 Food.prototype.constructor = Food;
 
+function Block(game, x, y) {
+  var t = this;
+  Entity.prototype.constructor.call(t, game, x, y);
+  t.type = 'Block';
+  t.color = '#4f1111';
+  t.blocking = true;
+}
+Block.prototype = new Entity;
+Block.prototype.constructor = Block;
+
 function Game(mapWidth) {
   var t = this;
   t.counter = 0;
@@ -152,7 +192,8 @@ function Game(mapWidth) {
   t.food = [];
   t.hives = [];
   t.creeps = [];
-  t.entityNames = ['players', 'hives', 'creeps', 'food'];
+  t.blocks = [];
+  t.entityNames = ['players', 'hives', 'creeps', 'food', 'blocks'];
   t.mapWidth = mapWidth;
   t.cam = {
     x: 0,
@@ -435,20 +476,87 @@ describe("GarrowsGame", function() {
     });
 
     describe("pathfinding", function() {
-      it("should not collide with towers", function() {
+
+      var LOOP_TIME = 50;
+      var game;
+
+      before(function(_done) {
         canvas = document.getElementById('towersCanvas');
         c = canvas.getContext('2d');
-        var game = new Game(20);
-        window.g = game;
+        game = new Game(20);
         game.generateLevel();
-        game.food.push(new Food(game, 10, 10));
+        game.food.push(new Food(game, 5, 10));
         game.hives.push(new Hive(game, 15, 10));
+        game.blocks.push(new Block(game, 10, 10));
         game.cam.z = 1;
-        game.update();
-        game.draw();
-        game.creeps.length.should.eql(1);
-        game.creeps[0].eating.should.eql(false);
-        // game.creeps[0].d.should.eql(0);
+        return _done();
+      });
+
+      it("should not collide with towers", function(done) {
+        game.creeps.length.should.eql(0);
+        var i = 0;
+        var loop = function() {
+          i++;
+          game.update();
+          game.draw();
+          game.creeps.length.should.eql(1);
+          if (i === 5) {
+            game.creeps[0].y.should.not.eql(10);
+            game.creeps[0].eating.should.eql(false);
+            game.creeps[0].energy.should.eql(0);
+            return done();
+          } else {
+            game.creeps[0].y.should.eql(10);
+          }
+          setTimeout(loop, LOOP_TIME);
+        };
+        setTimeout(loop, 0);
+      });
+
+      it("should find food within 10ish updates", function(done) {
+        var i = 0;
+        var loop = function() {
+          i++;
+          game.update();
+          game.draw();
+          if (game.creeps[0].eating) {
+            return done();
+          }
+          i.should.be.lessThan(20);
+          setTimeout(loop, LOOP_TIME);
+        };
+        setTimeout(loop, 0);
+      });
+
+      it("should its way home through complex route", function(done) {
+        var i = 0;
+        for (var x = 0; x < 20; x++) {
+          game.blocks.push(new Block(game, 0.5, x));
+          game.blocks.push(new Block(game, 19.5, x));
+          game.blocks.push(new Block(game, x, 0.5));
+          game.blocks.push(new Block(game, x, 19.5));
+        }
+        game.blocks.push(new Block(game, 6, 7));
+        game.blocks.push(new Block(game, 7, 7));
+        game.blocks.push(new Block(game, 8, 7));
+        game.blocks.push(new Block(game, 9, 7));
+        game.blocks.push(new Block(game, 10, 7));
+        game.blocks.push(new Block(game, 10, 8));
+        game.blocks.push(new Block(game, 10, 9));
+        game.blocks.push(new Block(game, 10, 11));
+        game.blocks.push(new Block(game, 10, 12));
+        game.blocks.push(new Block(game, 10, 13));
+        var loop = function() {
+          i++;
+          game.update();
+          game.draw();
+          if (game.creeps[0].energy == 0) {
+            return done();
+          }
+          i.should.be.lessThan(200);
+          setTimeout(loop, LOOP_TIME);
+        };
+        setTimeout(loop, 0);
       });
     });
 

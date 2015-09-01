@@ -11,6 +11,7 @@ gulp.task('js-game', function() {
       'examples/garrows/game/hive.js',
       'examples/garrows/game/creep.js',
       'examples/garrows/game/food.js',
+      'examples/garrows/game/block.js',
       'examples/garrows/game/game.js',
       'examples/garrows/game/main.js',
     ])
@@ -28,6 +29,7 @@ gulp.task('js-test', function() {
       'examples/garrows/game/hive.js',
       'examples/garrows/game/creep.js',
       'examples/garrows/game/food.js',
+      'examples/garrows/game/block.js',
       'examples/garrows/game/game.js',
       'examples/garrows/game/test.js',
     ])
