@@ -11,7 +11,7 @@ function Game(mapWidth) {
   t.cam = {
     x: 0,
     y: 0,
-    z: .35
+    z: .25
   }
 }
 
@@ -136,6 +136,9 @@ Game.prototype = {
     requestAnimationFrame(this.drawLoop.bind(this));
   },
   click: function(x, y) {
+    var w = canvas.width / (lCan.width * this.cam.z);
+     x = x / w + (this.cam.x);
+      y = y / w + (this.cam.y);
     io.emit('new-tower', {
       x: x,
       y: y
