@@ -204,6 +204,7 @@ function Game(mapWidth) {
 
 Game.prototype = {
   serverUpdated: function(data) {
+    var t = this;
     function updateEntities(entities, serialized) {
       if (!serialized) return;
       for (var i = 0; i < serialized.length; i++) {
@@ -213,11 +214,10 @@ Game.prototype = {
         entities[i].deserialize(serialized[i]);
       }
     }
-    this.counter = data.counter ? data.counter : this.counter;
-    updateEntities(this.players, data.players)
-    updateEntities(this.food, data.food)
-    updateEntities(this.hives, data.hives)
-    updateEntities(this.creeps, data.creeps)
+    t.counter = data.counter ? data.counter : t.counter;
+    t.entityNames.forEach(function(name) {
+      updateEntities(t[name], data[name]);
+    });
   },
   update: function(io) {
     var t = this;
@@ -286,7 +286,7 @@ Game.prototype = {
     t.cam.x = t.cam.x > 0 ? t.cam.x : 0;
     t.cam.y = t.cam.y > 0 ? t.cam.y : 0;
     t.cam.z = t.cam.z > 1 ? 1 : t.cam.z;
-    t.cam.z = t.cam.z < .1 ? .1 : t.cam.z;
+    t.cam.z = t.cam.z < .05 ? .05 : t.cam.z;
     var dw = canvas.width,
       dh = canvas.height,
       sx = t.cam.x,
@@ -321,6 +321,12 @@ Game.prototype = {
   drawLoop: function(dt) {
     this.draw(dt);
     requestAnimationFrame(this.drawLoop.bind(this));
+  },
+  click: function(x, y) {
+    io.emit('new-tower', {
+      x: x,
+      y: y
+    });
   },
 };
 
@@ -479,6 +485,9 @@ describe("GarrowsGame", function() {
 
       var LOOP_TIME = 50;
       var game;
+
+      this.timeout(LOOP_TIME * 1000);
+      this.slow(LOOP_TIME * 100);
 
       before(function(_done) {
         canvas = document.getElementById('towersCanvas');

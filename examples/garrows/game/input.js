@@ -8,6 +8,7 @@ function setupInput() {
     mousedown = e.type === 'mousedown';
     var x = e.layerX - canvas.offsetParent.offsetLeft,
       y = e.layerY - canvas.offsetParent.offsetTop;
+    mousedown && game.click(x, y);
   }
   canvas.onmousemove = function(e) {
     if (!mousedown) return;

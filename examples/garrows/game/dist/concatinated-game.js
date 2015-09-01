@@ -8,6 +8,7 @@ function setupInput() {
     mousedown = e.type === 'mousedown';
     var x = e.layerX - canvas.offsetParent.offsetLeft,
       y = e.layerY - canvas.offsetParent.offsetTop;
+    mousedown && game.click(x, y);
   }
   canvas.onmousemove = function(e) {
     if (!mousedown) return;
@@ -224,6 +225,7 @@ function Game(mapWidth) {
 
 Game.prototype = {
   serverUpdated: function(data) {
+    var t = this;
     function updateEntities(entities, serialized) {
       if (!serialized) return;
       for (var i = 0; i < serialized.length; i++) {
@@ -233,11 +235,10 @@ Game.prototype = {
         entities[i].deserialize(serialized[i]);
       }
     }
-    this.counter = data.counter ? data.counter : this.counter;
-    updateEntities(this.players, data.players)
-    updateEntities(this.food, data.food)
-    updateEntities(this.hives, data.hives)
-    updateEntities(this.creeps, data.creeps)
+    t.counter = data.counter ? data.counter : t.counter;
+    t.entityNames.forEach(function(name) {
+      updateEntities(t[name], data[name]);
+    });
   },
   update: function(io) {
     var t = this;
@@ -306,7 +307,7 @@ Game.prototype = {
     t.cam.x = t.cam.x > 0 ? t.cam.x : 0;
     t.cam.y = t.cam.y > 0 ? t.cam.y : 0;
     t.cam.z = t.cam.z > 1 ? 1 : t.cam.z;
-    t.cam.z = t.cam.z < .1 ? .1 : t.cam.z;
+    t.cam.z = t.cam.z < .05 ? .05 : t.cam.z;
     var dw = canvas.width,
       dh = canvas.height,
       sx = t.cam.x,
@@ -341,6 +342,12 @@ Game.prototype = {
   drawLoop: function(dt) {
     this.draw(dt);
     requestAnimationFrame(this.drawLoop.bind(this));
+  },
+  click: function(x, y) {
+    io.emit('new-tower', {
+      x: x,
+      y: y
+    });
   },
 };
 
@@ -395,8 +402,14 @@ if (typeof window != 'undefined') {
   //Fill map
   io = require('sandbox-io');
   log('Loaded sandbox-io');
+
   io.on('connection', function(socket) {
-    socket.on('event', function(data) {});
+
+    socket.on('new-tower', function(d) {
+      console.log('tower',d);
+      game.blocks.push(new Block(game, d.x, d.y));
+    });
+
     socket.on('register', function(data) {
       var found = game.players.some(function(p) {
         return p.name === data.name;

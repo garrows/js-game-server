@@ -143,6 +143,9 @@ describe("GarrowsGame", function() {
       var LOOP_TIME = 50;
       var game;
 
+      this.timeout(LOOP_TIME * 1000);
+      this.slow(LOOP_TIME * 100);
+
       before(function(_done) {
         canvas = document.getElementById('towersCanvas');
         c = canvas.getContext('2d');

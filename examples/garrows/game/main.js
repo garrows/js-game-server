@@ -38,8 +38,14 @@ if (typeof window != 'undefined') {
   //Fill map
   io = require('sandbox-io');
   log('Loaded sandbox-io');
+
   io.on('connection', function(socket) {
-    socket.on('event', function(data) {});
+
+    socket.on('new-tower', function(d) {
+      console.log('tower',d);
+      game.blocks.push(new Block(game, d.x, d.y));
+    });
+
     socket.on('register', function(data) {
       var found = game.players.some(function(p) {
         return p.name === data.name;
